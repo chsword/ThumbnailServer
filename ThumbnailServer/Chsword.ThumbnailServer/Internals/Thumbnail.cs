@@ -82,7 +82,6 @@ namespace Chsword.ThumbnailServer
         {
             if (img.Height == 0)
                 return 0;
-            //System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(fn, true);
             return ((double)img.Width) / img.Height;
         }
     }
