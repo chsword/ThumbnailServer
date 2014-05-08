@@ -9,7 +9,7 @@ namespace Chsword.ThumbnailServer
     ///<summary>
     /// 生成缩略图的类
     ///</summary>
-    internal class Thumbnail
+    internal class ThumbnailHelper
     {
         public static void CreateThumbnail(Image img, string newFile, Size size)
         {

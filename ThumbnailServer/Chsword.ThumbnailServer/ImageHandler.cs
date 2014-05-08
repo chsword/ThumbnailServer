@@ -54,7 +54,7 @@ namespace Chsword.ThumbnailServer
                 {
                     return false;
                 }
-                Thumbnail.CreateThumbnail(Image.FromFile(sourcePicFileName), descPicFileName, new Size
+                ThumbnailHelper.CreateThumbnail(Image.FromFile(sourcePicFileName), descPicFileName, new Size
                 {
                     Width = width,
                     Height = height
