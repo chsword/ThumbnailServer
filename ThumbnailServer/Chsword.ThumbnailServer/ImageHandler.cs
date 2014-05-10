@@ -107,7 +107,7 @@ namespace Chsword.ThumbnailServer
                 //}
 
                 #endregion
-                ImageHelper.WriteImage(contextWrapper, contextWrapper.Server.MapPath(context.Request.Url.LocalPath));
+                ImageHttpHelper.WriteImage(contextWrapper, contextWrapper.Server.MapPath(context.Request.Url.LocalPath));
             }
             else
             {

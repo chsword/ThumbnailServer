@@ -13,6 +13,11 @@ namespace Chsword.ThumbnailServer.MVCDemo
         {
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            ThumbnailConfig.Start().Include("/Images", setting => 
+                setting
+                .AllSize()
+                .Store()
+                );
         }
     }
 }

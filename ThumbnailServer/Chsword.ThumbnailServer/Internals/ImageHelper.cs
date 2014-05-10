@@ -6,7 +6,7 @@ namespace Chsword.ThumbnailServer
     /// <summary>
     /// 输出图片工具类
     /// </summary>
-    internal static class ImageHelper
+    internal static class ImageHttpHelper
     {
         /// <summary>
         /// Writes the image using the content type derived from file

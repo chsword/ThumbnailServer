@@ -39,7 +39,6 @@
   <ItemGroup>
     <Compile Include="ImageHandler.cs" />
     <Compile Include="Internals\ImageHelper.cs" />
-    <Compile Include="Internals\PictureSizeRules.cs" />
     <Compile Include="PicInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Internals\Thumbnail.cs" />

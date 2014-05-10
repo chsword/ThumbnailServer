@@ -12,7 +12,10 @@ namespace Chsword.ThumbnailServer.MVCDemo
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-
+            routes.IgnoreRoute("{resource}.jpg");
+            routes.IgnoreRoute("{resource}.jpeg");
+            routes.IgnoreRoute("{resource}.png");
+            routes.IgnoreRoute("{resource}.gif");
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
