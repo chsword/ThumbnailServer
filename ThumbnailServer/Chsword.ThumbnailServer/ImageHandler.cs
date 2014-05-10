@@ -8,67 +8,91 @@ namespace Chsword.ThumbnailServer
 {
     public class ImageHandler : IHttpHandler
     {
-        private static int[] WidthArray =
-            new[]
-            {
-                PictureSizeRules.FaceWidthArray, PictureSizeRules.GroupPicWidthArray, PictureSizeRules.ProductPicWidthArray,
-                PictureSizeRules.SharePicWidthArray
-            }.SelectMany(c => c).Distinct().ToArray();
-
-        private static int[] FixArray =
-            new[] { PictureSizeRules.ProductPicFixWidthArray, PictureSizeRules.SharePicFixWidthArray }.SelectMany(c => c)
-                .Distinct().Distinct().ToArray();
-        private static bool ProcessImage(HttpContext context)
+        /// <summary>
+        /// 处理图片
+        /// </summary>
+        /// <param name="context">HttpContextBase</param>
+        /// <returns>
+        /// true图片正常 false图片异常
+        /// </returns>
+        private static bool ProcessImage(HttpContextBase context)
         {
-            var url = context.Request.Url.LocalPath;
-            var descPicFileName = context.Server.MapPath(url);
-            if (File.Exists(descPicFileName)) return true;
-            //如果文件名中含有2个点以上，则404
-            if (url.Count(c => c == '.') > 2) return false;
-            var arrs = url.Split('_');
-            if (arrs.Length <= 1) return false;
-            var sourcePicPath = string.Join("_", arrs.Take(arrs.Length - 1));
-            var sizeWithExtStr = arrs.LastOrDefault();
-            if (string.IsNullOrWhiteSpace(sizeWithExtStr)) return false;
-            var sizeWithExtArray = sizeWithExtStr.Split('.');
-            if (sizeWithExtArray.Length <= 1) return false;
-            var sizeArray = sizeWithExtArray[0].Split('X');
-            if (sizeArray.Length <= 1) return false;
-            int width = 0,
-                height = 0;
-            if (!int.TryParse(sizeArray[0], out width) || !int.TryParse(sizeArray[1], out height))
+
+            if(context.Request.Url==null)return false;
+            var descUrl = context.Request.Url.LocalPath;
+            //未设置此路径 ，则直接访问图片
+            var setting = GetThumbnailSeting(descUrl);
+            if (setting == null) return true;
+
+            var descPath = context.Server.MapPath(descUrl);
+            if (setting.EnableStore)
             {
-                return false;
+                //允许存储文件的情况
+                if (File.Exists(descPath)) return true;
             }
-
-            if ((width == height && WidthArray.Contains(width)) ||
-                (height == PictureSizeRules.FixHeight && FixArray.Contains(width)))
+            //如果文件名中含有2个点以上的\dX\x.jpg则404
+            var picInfo = GetPicInfo(descUrl);
+            if (picInfo == null) return false;
+            var sourceUrl = picInfo.SourcePath;
+           // int width = picInfo.Width,height = picInfo.Height;
+            if (setting.AllowAllSizes || 
+                setting.IsCommonSize(picInfo) ||
+                setting.IsFixSize(picInfo))
             {
-                if (width <= 0 || height <= 0)
-                {
-                    return false;
-                }
-                var sourcePicFileName = context.Server.MapPath(sourcePicPath);
+              
+                var sourcePath = context.Server.MapPath(sourceUrl);
 
-                if (!File.Exists(sourcePicFileName))
+                if (!File.Exists(sourcePath))
                 {
                     return false;
                 }
-                ThumbnailHelper.CreateThumbnail(Image.FromFile(sourcePicFileName), descPicFileName, new Size
-                {
-                    Width = width,
-                    Height = height
-                });
+                ThumbnailHelper.CreateThumbnail(Image.FromFile(sourcePath), descPath,
+                    new ThumbnailSize(picInfo.Width,picInfo.Height));
                 return true;
             }
             return false;
         }
 
+        private static PicInfo GetPicInfo(string url)
+        {
+            var picInfo = new PicInfo();
+            if (url.Count(c => c == '.') > 2) return null;
+            var arrs = url.Split('_');
+            if (arrs.Length <= 1) return null;
+            picInfo.SourcePath = string.Join("_", arrs.Take(arrs.Length - 1));
+            var sizeWithExtStr = arrs.LastOrDefault();
+            if (string.IsNullOrWhiteSpace(sizeWithExtStr)) return null;
+            var sizeWithExtArray = sizeWithExtStr.Split('.');
+            if (sizeWithExtArray.Length <= 1) return null;
+            var sizeArray = sizeWithExtArray[0].Split('X');
+            if (sizeArray.Length <= 1) return null;
+            int w, h;
+            if (!int.TryParse(sizeArray[0], out w) || !int.TryParse(sizeArray[1], out h))
+            {
+                return null;
+            }
+            picInfo.Width = w;
+            picInfo.Height = h;
+            if (picInfo.Width <= 0 || picInfo.Height <= 0)
+            {
+                return null;
+            }
+            return picInfo;
+        }
+
+        private static ThumbnailSetting GetThumbnailSeting(string url)
+        {
+            return ThumbnailConfig.Instance.PathDictionary.FirstOrDefault().Value;
+        }
+
         public void ProcessRequest(HttpContext context)
         {
-            var result = ProcessImage(context);
+            var contextWrapper = new HttpContextWrapper(context);
+            var result = ProcessImage(contextWrapper);
             if (result)
             {
+                #region client cache
+
                 //context.Response.AddHeader("Cache-Control", "max-age=60");
                 //context.Response.AddHeader("Last-Modified", DateTime.Now.ToString("U", DateTimeFormatInfo.InvariantInfo));
                 //DateTime ifModifiedSince;
@@ -81,15 +105,17 @@ namespace Chsword.ThumbnailServer
                 //        return;
                 //    }
                 //}
-                ImageHelper.WriteImage(new HttpContextWrapper(context), context.Server.MapPath(context.Request.Url.LocalPath));
+
+                #endregion
+                ImageHelper.WriteImage(contextWrapper, contextWrapper.Server.MapPath(context.Request.Url.LocalPath));
             }
             else
             {
-                NotFound(context);
+                NotFound(contextWrapper);
             }
         }
 
-        private void NotFound(HttpContext context)
+        private void NotFound(HttpContextBase context)
         {
             if (context == null)
                 throw new ArgumentNullException("context");

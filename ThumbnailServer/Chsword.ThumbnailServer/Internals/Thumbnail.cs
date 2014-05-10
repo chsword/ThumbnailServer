@@ -11,7 +11,7 @@ namespace Chsword.ThumbnailServer
     ///</summary>
     internal class ThumbnailHelper
     {
-        public static void CreateThumbnail(Image img, string newFile, Size size)
+        public static void CreateThumbnail(Image img, string newFile, ThumbnailSize size)
         {
             CreateThumbnail(img, newFile, size.Width, size.Height);
         }
@@ -25,7 +25,7 @@ namespace Chsword.ThumbnailServer
         ///<param name="maxHeight">×î´ó¸ß</param>
         public static void CreateThumbnail(Image img, string fileName, int maxWidth, int maxHeight)
         {
-            Size newSize = NewSize(maxWidth, maxHeight, img.Width, img.Height);
+            ThumbnailSize newSize = NewSize(maxWidth, maxHeight, img.Width, img.Height);
             using (var outBmp = new Bitmap(newSize.Width, newSize.Height))
             {
                 using (Graphics g = Graphics.FromImage(outBmp))
@@ -48,7 +48,7 @@ namespace Chsword.ThumbnailServer
                     outBmp.Save(fileName, img.RawFormat);
             }
         }
-        private static Size NewSize(int maxWidth, int maxHeight, int width, int height)
+        private static ThumbnailSize NewSize(int maxWidth, int maxHeight, int width, int height)
         {
             double w;
             double h;
@@ -71,7 +71,7 @@ namespace Chsword.ThumbnailServer
                 h = maxHeight;
                 w = (h * sw) / sh;
             }
-            return new Size(Convert.ToInt32(w), Convert.ToInt32(h));
+            return new ThumbnailSize(Convert.ToInt32(w), Convert.ToInt32(h));
         }
 
         /// <summary>
