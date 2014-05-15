@@ -1,4 +1,4 @@
-ThumbnailServer（已弃）
+ThumbnailServer
 ===============
 
 基于.net的响应式缩略图服务
@@ -11,7 +11,3 @@ ThumbnailServer（已弃）
 转为缩略图
 
 
-
-后已经使用
-https://github.com/chsword/resizer
-来代替
